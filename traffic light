@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Signal</title>
+<style>
+  :root{
+    --housing: #1c1d1f;
+    --housing-edge: #33353a;
+    --visor: #101113;
+    --bg-top: #0a0e14;
+    --bg-bottom: #171d29;
+    --red-on: #ff3b30;
+    --red-off: #3a1414;
+    --yellow-on: #ffd23f;
+    --yellow-off: #3a2f10;
+    --green-on: #2ee06c;
+    --green-off: #123a1e;
+    --ink: #e8e9ec;
+    --muted: #7d8290;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;
+    height:100%;
+    background: radial-gradient(120% 100% at 50% 0%, var(--bg-bottom), var(--bg-top));
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: var(--ink);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .stage{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:28px;
+    padding: 40px 20px;
+  }
+  .eyebrow{
+    font-size: 11px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight:600;
+  }
+  .rig{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+  .pole{
+    width:6px;
+    height:34px;
+    background: linear-gradient(to bottom, var(--housing-edge), var(--housing));
+    border-radius:2px;
+  }
+  .housing{
+    background: linear-gradient(160deg, var(--housing-edge), var(--housing) 40%, #0f1011);
+    border-radius: 20px;
+    padding: 14px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    box-shadow:
+      0 20px 40px -10px rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+  .lamp-wrap{
+    position: relative;
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    background: #0b0c0d;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow: inset 0 3px 6px rgba(0,0,0,0.8);
+  }
+  .visor{
+    position:absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 96px;
+    height: 20px;
+    background: var(--visor);
+    border-radius: 0 0 48px 48px / 0 0 20px 20px;
+    clip-path: polygon(0 0, 100% 0, 92% 100%, 8% 100%);
+  }
+  .lamp{
+    width: 66px;
+    height: 66px;
+    border-radius: 50%;
+    transition: background 0.4s ease, box-shadow 0.4s ease;
+  }
+  .lamp.red{ background: var(--red-off); }
+  .lamp.yellow{ background: var(--yellow-off); }
+  .lamp.green{ background: var(--green-off); }
+
+  .lamp.red.lit{
+    background: radial-gradient(circle at 35% 30%, #ffb3ad, var(--red-on) 60%);
+    box-shadow: 0 0 22px 6px rgba(255,59,48,0.75), 0 0 60px 20px rgba(255,59,48,0.35);
+  }
+  .lamp.yellow.lit{
+    background: radial-gradient(circle at 35% 30%, #fff2b8, var(--yellow-on) 60%);
+    box-shadow: 0 0 22px 6px rgba(255,210,63,0.75), 0 0 60px 20px rgba(255,210,63,0.35);
+  }
+  .lamp.green.lit{
+    background: radial-gradient(circle at 35% 30%, #b6ffcf, var(--green-on) 60%);
+    box-shadow: 0 0 22px 6px rgba(46,224,108,0.75), 0 0 60px 20px rgba(46,224,108,0.35);
+  }
+
+  .status{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+  }
+  .status-word{
+    font-size: 22px;
+    font-weight:700;
+    letter-spacing: 0.02em;
+    min-width: 140px;
+    text-align:center;
+  }
+  .status-sub{
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .controls{
+    display:flex;
+    gap: 10px;
+  }
+  button{
+    appearance:none;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.03);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight:600;
+    padding: 10px 18px;
+    border-radius: 999px;
+    cursor:pointer;
+    transition: background 0.2s, transform 0.1s, border-color 0.2s;
+  }
+  button:hover{ background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); }
+  button:active{ transform: scale(0.96); }
+  button:focus-visible{ outline: 2px solid var(--green-on); outline-offset: 2px; }
+  button.primary{
+    background: var(--ink);
+    color: #101113;
+    border-color: var(--ink);
+  }
+  button.primary:hover{ background: #fff; }
+  button[disabled]{
+    opacity:0.4;
+    cursor:not-allowed;
+  }
+
+  .countdown{
+    font-size: 11px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .lamp{ transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="eyebrow">Junction 4 &middot; Signal 01</div>
+
+  <div class="rig">
+    <div class="housing">
+      <div class="lamp-wrap">
+        <div class="visor"></div>
+        <div class="lamp red" id="lampRed"></div>
+      </div>
+      <div class="lamp-wrap">
+        <div class="visor"></div>
+        <div class="lamp yellow" id="lampYellow"></div>
+      </div>
+      <div class="lamp-wrap">
+        <div class="visor"></div>
+        <div class="lamp green" id="lampGreen"></div>
+      </div>
+    </div>
+    <div class="pole"></div>
+  </div>
+
+  <div class="status">
+    <div class="status-word" id="statusWord">Stop</div>
+    <div class="status-sub" id="statusSub">Hold position</div>
+  </div>
+
+  <div class="controls">
+    <button id="stepBtn" class="primary">Advance</button>
+    <button id="autoBtn">Run auto</button>
+  </div>
+  <div class="countdown" id="countdown">&nbsp;</div>
+</div>
+
+<script>
+  // UK-style sequence: RED -> RED+AMBER -> GREEN -> AMBER -> RED
+  const sequence = [
+    { state: ['red'],          word: 'Stop',       sub: 'Hold position',        duration: 4000 },
+    { state: ['red','yellow'], word: 'Prepare',    sub: 'Get ready to move',    duration: 1500 },
+    { state: ['green'],        word: 'Go',         sub: 'Proceed with care',    duration: 4000 },
+    { state: ['yellow'],       word: 'Caution',    sub: 'Stop if it\'s safe to', duration: 1500 },
+  ];
+
+  let index = 0;
+  let autoTimer = null;
+  let countdownTimer = null;
+
+  const lamps = {
+    red: document.getElementById('lampRed'),
+    yellow: document.getElementById('lampYellow'),
+    green: document.getElementById('lampGreen'),
+  };
+  const statusWord = document.getElementById('statusWord');
+  const statusSub = document.getElementById('statusSub');
+  const stepBtn = document.getElementById('stepBtn');
+  const autoBtn = document.getElementById('autoBtn');
+  const countdownEl = document.getElementById('countdown');
+
+  function render(){
+    const step = sequence[index];
+    Object.keys(lamps).forEach(color=>{
+      lamps[color].classList.toggle('lit', step.state.includes(color));
+    });
+    statusWord.textContent = step.word;
+    statusSub.textContent = step.sub;
+  }
+
+  function startCountdown(duration){
+    clearInterval(countdownTimer);
+    let remaining = duration / 1000;
+    countdownEl.textContent = `next in ${remaining.toFixed(1)}s`;
+    countdownTimer = setInterval(()=>{
+      remaining -= 0.1;
+      if(remaining <= 0){
+        clearInterval(countdownTimer);
+        countdownEl.textContent = '\u00a0';
+      } else {
+        countdownEl.textContent = `next in ${remaining.toFixed(1)}s`;
+      }
+    }, 100);
+  }
+
+  function advance(manual){
+    index = (index + 1) % sequence.length;
+    render();
+    if(!manual){
+      scheduleAuto();
+    } else {
+      countdownEl.textContent = '\u00a0';
+    }
+  }
+
+  function scheduleAuto(){
+    clearTimeout(autoTimer);
+    clearInterval(countdownTimer);
+    const duration = sequence[index].duration;
+    startCountdown(duration);
+    autoTimer = setTimeout(()=> advance(false), duration);
+  }
+
+  let running = false;
+  function setRunning(on){
+    running = on;
+    autoBtn.textContent = running ? 'Stop auto' : 'Run auto';
+    stepBtn.disabled = running;
+    if(running){
+      scheduleAuto();
+    } else {
+      clearTimeout(autoTimer);
+      clearInterval(countdownTimer);
+      countdownEl.textContent = '\u00a0';
+    }
+  }
+
+  stepBtn.addEventListener('click', ()=> advance(true));
+  autoBtn.addEventListener('click', ()=> setRunning(!running));
+
+  render();
+</script>
+
+</body>
+</html>
